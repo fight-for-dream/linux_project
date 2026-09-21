@@ -83,10 +83,14 @@ EEPROM 扩展口的 `GPIO4_IO22` 对应模块引脚未连接。当前软件不�
 资源，四个驱动已实测可同时加载和运行。将来增加 ADXL345 中断或连接辅助引脚
 时必须重新检查与电机的冲突。
 
+板级 `100ask_imx6ull-14x14.dts` 的旧 `/dht11` 节点使用 `GPIO4_IO19`。
+当前 `hcm-dht11.dtsi` 会先删除旧节点，再把 DHT11 迁移到 `GPIO4_IO23`；
+如果实际 DTS 仍有旧节点，合并时必须保留该删除操作，否则会与电机冲突。
+
 显示与输入：
 
 - `/dev/fb0`：`mxs-lcdif`，1024×600，32 bpp。
-- Goodix 触摸屏：`/dev/input/event1`，已观察到多点坐标和 `BTN_TOUCH` 事件。
+- Goodix 触摸屏当前实测为 `/dev/input/event1`，已观察到多点坐标和 `BTN_TOUCH` 事件；event 编号可能随枚举变化，部署后应从 `/proc/bus/input/devices` 重新确认。
 
 ## 4. 独立驱动基线
 
