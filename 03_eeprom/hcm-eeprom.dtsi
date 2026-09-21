@@ -1,0 +1,24 @@
+/*
+ * AT24C02A on extension-board I2C_A connector J4:
+ * J4-1  5V          -> module pin 1 is not connected
+ * J4-2  3.3V        -> module 3V3
+ * J4-3  GND         -> module GND
+ * J4-4  GPIO4_IO22  -> module pin 4 is not connected
+ * J4-5  I2C1_SDA    -> module SDA
+ * J4-6  I2C1_SCL    -> module SCL
+ * J4-7  ADC1_CH3    -> module light-sensor output, unused here
+ * J4-8  not connected
+ *
+ * A0/A1/A2 are grounded, so the 7-bit I2C address is 0x50.
+ * Include this file at the end of 100ask_imx6ull-14x14.dts.
+ */
+
+&i2c1 {
+	status = "okay";
+
+	hcm_eeprom: eeprom@50 {
+		compatible = "hcm,at24c02";
+		reg = <0x50>;
+		status = "okay";
+	};
+};

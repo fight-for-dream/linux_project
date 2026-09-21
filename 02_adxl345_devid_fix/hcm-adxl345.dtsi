@@ -1,0 +1,25 @@
+/*
+ * ADXL345 on extension-board connector J2:
+ * J2-2  3.3V
+ * J2-3  GND
+ * J2-4  GPIO4_IO20 (INT1, unused in the first version)
+ * J2-5  ECSPI1_MOSI
+ * J2-6  ECSPI1_MISO
+ * J2-7  ECSPI1_SCLK
+ * J2-8  ECSPI1_CS0 (GPIO4_IO26)
+ *
+ * Include this file at the end of 100ask_imx6ull-14x14.dts.
+ */
+
+&ecspi1 {
+	status = "okay";
+
+	adxl345@0 {
+		compatible = "hcm,adxl345";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+		spi-cpol;
+		spi-cpha;
+		status = "okay";
+	};
+};

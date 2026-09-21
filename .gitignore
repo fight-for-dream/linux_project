@@ -1,0 +1,41 @@
+# Kernel module and compiler output
+*.o
+*.ko
+*.a
+*.so
+*.d
+*.cmd
+*.mod
+*.mod.c
+*.symvers
+*.dtb
+modules.order
+Module.symvers
+built-in.o
+.tmp_versions/
+
+# Application binaries
+dht11_app
+adxl345_app
+eeprom_app
+motor_app
+monitor_app
+monitor_thread
+hcm_test
+lv_hcm_test
+mqtt_publish_test
+
+# Runtime output
+*.log
+*.csv
+core
+core.*
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+.DS_Store
+

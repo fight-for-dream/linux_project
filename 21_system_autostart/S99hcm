@@ -1,0 +1,143 @@
+#!/bin/sh
+
+AUTOSTART_HOME=/root/hcm/21_system_autostart
+CONFIG_FILE=$AUTOSTART_HOME/hcm.conf
+APP_PID=/var/run/hcm_app.pid
+
+if [ ! -f "$CONFIG_FILE" ]; then
+	echo "HCM configuration not found: $CONFIG_FILE"
+	exit 1
+fi
+
+. "$CONFIG_FILE"
+
+module_is_loaded()
+{
+	grep -q "^$1 " /proc/modules 2>/dev/null
+}
+
+load_module()
+{
+	MODULE_NAME=$1
+	MODULE_FILE=$2
+
+	if module_is_loaded "$MODULE_NAME"; then
+		echo "$MODULE_NAME already loaded"
+		return 0
+	fi
+
+	if [ ! -f "$MODULE_FILE" ]; then
+		echo "Module not found: $MODULE_FILE"
+		return 1
+	fi
+
+	insmod "$MODULE_FILE"
+	if [ $? -ne 0 ]; then
+		echo "Failed to load: $MODULE_FILE"
+		return 1
+	fi
+
+	echo "$MODULE_NAME loaded"
+	return 0
+}
+
+application_is_running()
+{
+	[ -f "$APP_PID" ] || return 1
+	PID=$(cat "$APP_PID" 2>/dev/null)
+	[ -n "$PID" ] || return 1
+	kill -0 "$PID" 2>/dev/null
+}
+
+start_application()
+{
+	if application_is_running; then
+		echo "HCM application already running, pid=$(cat "$APP_PID")"
+		return 0
+	fi
+
+	rm -f "$APP_PID"
+	if [ ! -x "$APP_PATH" ]; then
+		echo "Application is not executable: $APP_PATH"
+		return 1
+	fi
+
+	cd "$HCM_HOME" || return 1
+	(
+		trap '' HUP
+		exec "$APP_PATH" "$BROKER_HOST" "$BROKER_PORT" \
+			</dev/null >> "$APP_LOG" 2>&1
+	) &
+	echo $! > "$APP_PID"
+	echo "HCM application started, pid=$(cat "$APP_PID")"
+}
+
+start_hcm()
+{
+	echo "Starting HCM system"
+
+	load_module dht11_drv "$MODULE_DIR/dht11_drv.ko" || return 1
+	load_module adxl345_drv "$MODULE_DIR/adxl345_drv.ko" || return 1
+	load_module eeprom_drv "$MODULE_DIR/eeprom_drv.ko" || return 1
+	load_module motor_drv "$MODULE_DIR/motor_drv.ko" || return 1
+
+	start_application
+}
+
+stop_hcm()
+{
+	echo "Stopping HCM application"
+
+	if application_is_running; then
+		PID=$(cat "$APP_PID")
+		kill "$PID" 2>/dev/null
+		WAIT_COUNT=0
+		while kill -0 "$PID" 2>/dev/null && [ "$WAIT_COUNT" -lt 10 ]
+		do
+			sleep 1
+			WAIT_COUNT=$((WAIT_COUNT + 1))
+		done
+	fi
+	rm -f "$APP_PID"
+}
+
+status_hcm()
+{
+	if application_is_running; then
+		echo "HCM application is running, pid=$(cat "$APP_PID")"
+	else
+		echo "HCM application is not running"
+	fi
+
+	for MODULE_NAME in dht11_drv adxl345_drv eeprom_drv motor_drv
+	do
+		if module_is_loaded "$MODULE_NAME"; then
+			echo "$MODULE_NAME: loaded"
+		else
+			echo "$MODULE_NAME: not loaded"
+		fi
+	done
+}
+
+case "$1" in
+	start)
+		start_hcm
+		;;
+	stop)
+		stop_hcm
+		;;
+	restart)
+		stop_hcm
+		sleep 1
+		start_hcm
+		;;
+	status)
+		status_hcm
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+		;;
+esac
+
+exit $?

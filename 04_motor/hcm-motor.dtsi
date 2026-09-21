@@ -1,0 +1,36 @@
+/*
+ * Stepper motor driver board on extension-board GPIO0 connector J1:
+ * GPIO0 -> GPIO4_IO19
+ * GPIO1 -> GPIO4_IO20
+ * GPIO2 -> GPIO4_IO21
+ * GPIO3 -> GPIO4_IO22
+ *
+ * GPIO4_IO23 remains available for DHT11.
+ * Include this file at the end of 100ask_imx6ull-14x14.dts.
+ */
+#include <dt-bindings/gpio/gpio.h>
+#include "imx6ul-pinfunc.h"
+
+/ {
+	hcm_motor: hcm-motor {
+		compatible = "hcm,stepper-motor";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_hcm_motor>;
+		motor-gpios = <&gpio4 19 GPIO_ACTIVE_HIGH>,
+			      <&gpio4 20 GPIO_ACTIVE_HIGH>,
+			      <&gpio4 21 GPIO_ACTIVE_HIGH>,
+			      <&gpio4 22 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+
+&iomuxc {
+	pinctrl_hcm_motor: hcm-motor-grp {
+		fsl,pins = <
+			MX6UL_PAD_CSI_VSYNC__GPIO4_IO19 0x1b0b0
+			MX6UL_PAD_CSI_HSYNC__GPIO4_IO20 0x1b0b0
+			MX6UL_PAD_CSI_DATA00__GPIO4_IO21 0x1b0b0
+			MX6UL_PAD_CSI_DATA01__GPIO4_IO22 0x1b0b0
+		>;
+	};
+};

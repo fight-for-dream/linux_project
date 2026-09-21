@@ -1,0 +1,32 @@
+/*
+ * 设备树修改：GPIO4_IO23，连接扩展板 I2C_B 的 GPIO 脚。
+ * 把本文件复制到内核 arch/arm/boot/dts/，在实际板级 DTS 末尾加入：
+ * #include "hcm-dht11.dtsi"
+ *
+ * 工作区 100ask_imx6ull-14x14.dts 已有 /dht11，下面先删除旧节点。
+ * 如果实际板级 DTS 没有该节点，去掉下面的 /delete-node/ 一行。
+ * 这是包含片段，不是独立 DTS，也不是运行时 overlay。
+ * 编译并更新启动时实际加载的 DTB 后重启。
+ */
+#include <dt-bindings/gpio/gpio.h>
+#include "imx6ul-pinfunc.h"
+
+/delete-node/ &{/dht11};
+
+/ {
+	hcm_dht11: hcm-dht11 {
+		compatible = "hcm,dht11";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_hcm_dht11>;
+		data-gpios = <&gpio4 23 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+
+&iomuxc {
+	pinctrl_hcm_dht11: hcm-dht11-grp {
+		fsl,pins = <
+			MX6UL_PAD_CSI_DATA02__GPIO4_IO23 0x1b0b0
+		>;
+	};
+};
